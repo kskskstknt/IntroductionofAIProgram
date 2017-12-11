@@ -2,25 +2,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LOSTracing : MonoBehaviour
+namespace Chapter2
 {
-
-	// Use this for initialization
-	void Start ()
+    public class LOSTracing : MonoBehaviour
     {
-        System.Random random = new System.Random();
 
-        int predatorPosition = random.Next(0, spawnArea.Length);
-        predator = Instantiate(predator, spawnArea[predatorPosition].transform.position, Quaternion.identity);
+        // Use this for initialization
+        void Start()
+        {
+            System.Random random = new System.Random();
 
-        int playerPosition;
-        while ((playerPosition = random.Next(0, spawnArea.Length)) == predatorPosition) ;
-        player = Instantiate(player, spawnArea[playerPosition].transform.position, Quaternion.identity);
+            int predatorPosition = random.Next(0, spawnArea.Length);
+            predator = Instantiate(predator, spawnArea[predatorPosition].transform.position, Quaternion.identity);
 
-        UpdateCamera();
+            int playerPosition;
+            while ((playerPosition = random.Next(0, spawnArea.Length)) == predatorPosition) ;
+            player = Instantiate(player, spawnArea[playerPosition].transform.position, Quaternion.identity);
 
-        // 押されたキーに対応した移動量（ベクトル）を登録
-        moveVector = new Dictionary<KeyCode, Vector3>
+            UpdateCamera();
+
+            // 押されたキーに対応した移動量（ベクトル）を登録
+            moveVector = new Dictionary<KeyCode, Vector3>
         {
             {
                 KeyCode.RightArrow,
@@ -39,83 +41,85 @@ public class LOSTracing : MonoBehaviour
                 new Vector3(0.0f, 0.0f, -moveDelta)
             }
         };
-    }
-	
-	// Update is called once per frame
-	void Update ()
-    {
-        UpdatePlayer();
-        UpdateCamera();
-        LOSTrase();
-	}
-
-    void UpdateCamera()
-    {
-        mainCamera.transform.position = new Vector3(player.transform.position.x, lookAtDistance, player.transform.position.z);
-        mainCamera.transform.LookAt(player.transform);
-    }
-
-    /// <summary>
-    /// playerの移動を反映
-    /// </summary>
-    void UpdatePlayer()
-    {
-        // 横方向の移動
-        Vector3 verticalVector = new Vector3();
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            verticalVector = moveVector[KeyCode.RightArrow];
         }
 
-        if (Input.GetKey(KeyCode.LeftArrow))
+        // Update is called once per frame
+        void Update()
         {
-            verticalVector = moveVector[KeyCode.LeftArrow];
+            UpdatePlayer();
+            UpdateCamera();
+            LOSTrase();
         }
 
-        player.transform.Translate(verticalVector, Space.World);
-
-        // 縦方向の移動
-        Vector3 horizontalVector = new Vector3();
-        if (Input.GetKey(KeyCode.UpArrow))
+        void UpdateCamera()
         {
-            horizontalVector = moveVector[KeyCode.UpArrow];
+            mainCamera.transform.position = new Vector3(player.transform.position.x, lookAtDistance, player.transform.position.z);
+            mainCamera.transform.LookAt(player.transform);
         }
 
-        if (Input.GetKey(KeyCode.DownArrow))
+        /// <summary>
+        /// playerの移動を反映
+        /// </summary>
+        void UpdatePlayer()
         {
-            horizontalVector = moveVector[KeyCode.DownArrow];
+            // 横方向の移動
+            Vector3 verticalVector = new Vector3();
+            if (Input.GetKey(KeyCode.RightArrow))
+            {
+                verticalVector = moveVector[KeyCode.RightArrow];
+            }
+
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
+                verticalVector = moveVector[KeyCode.LeftArrow];
+            }
+
+            player.transform.Translate(verticalVector, Space.World);
+
+            // 縦方向の移動
+            Vector3 horizontalVector = new Vector3();
+            if (Input.GetKey(KeyCode.UpArrow))
+            {
+                horizontalVector = moveVector[KeyCode.UpArrow];
+            }
+
+            if (Input.GetKey(KeyCode.DownArrow))
+            {
+                horizontalVector = moveVector[KeyCode.DownArrow];
+            }
+
+            player.transform.Translate(horizontalVector, Space.World);
         }
 
-        player.transform.Translate(horizontalVector, Space.World);
+        void LOSTrase()
+        {
+            // uはpredatorがplayerを指す方向を表すベクトル
+            Vector3 u = (player.transform.position - predator.transform.position).normalized;
+            //Vector3 predatorX = new Vector3(predator.transform.position.x, predator.transform.position.y, 0).normalized;
+            //float theta = Mathf.Acos(Vector3.Dot(predatorX, u));
+            //predator.transform.rotation = new Quaternion(0, theta, 0, 0);
+            predator.transform.TransformDirection(u);
+            predator.transform.Translate(u * (moveDelta + 0.1f));
+        }
+
+        [SerializeField]
+        public GameObject player;
+        [SerializeField]
+        public GameObject predator;
+        [SerializeField]
+        public GameObject[] spawnArea;
+        [SerializeField]
+        public Camera mainCamera;
+        [SerializeField]
+        public float lookAtDistance;
+
+        /// <summary>
+        /// playerの移動量
+        /// </summary>
+        [SerializeField]
+        public float moveDelta;
+
+        private IDictionary<KeyCode, Vector3> moveVector;
     }
 
-    void LOSTrase()
-    {
-        // uはpredatorがplayerを指す方向を表すベクトル
-        Vector3 u = (player.transform.position - predator.transform.position).normalized;
-        //Vector3 predatorX = new Vector3(predator.transform.position.x, predator.transform.position.y, 0).normalized;
-        //float theta = Mathf.Acos(Vector3.Dot(predatorX, u));
-        //predator.transform.rotation = new Quaternion(0, theta, 0, 0);
-        predator.transform.TransformDirection(u);
-        predator.transform.Translate(u * (moveDelta + 0.1f));
-    }
-
-    [SerializeField]
-    public GameObject player;
-    [SerializeField]
-    public GameObject predator;
-    [SerializeField]
-    public GameObject[] spawnArea;
-    [SerializeField]
-    public Camera mainCamera;
-    [SerializeField]
-    public float lookAtDistance;
-
-    /// <summary>
-    /// playerの移動量
-    /// </summary>
-    [SerializeField]
-    public float moveDelta;
-
-    private IDictionary<KeyCode, Vector3> moveVector;
 }
